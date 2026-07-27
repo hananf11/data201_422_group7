@@ -1,1 +1,3 @@
-# DATA 201 GROUP 7 
+# Data Wrangling Group 7
+
+Our group repo
