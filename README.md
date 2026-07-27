@@ -2,4 +2,4 @@
 
 Our group repo
 
-Rules:
+Rules: be nice, show up to labs, do your work 
