@@ -1,0 +1,20 @@
+"column","type","n","n_missing","pct_missing","n_unique","min","max","mean","median","sd","most_common"
+"id","character",28795,0,0,4117,NA,NA,NA,NA,NA,"1000384415067542419 (9)"
+"name","character",28795,0,0,4854,NA,NA,NA,NA,NA,"Room in Christchurch (23)"
+"host_id","character",28795,0,0,2103,NA,NA,NA,NA,NA,"551181197 (1561)"
+"host_name","character",28795,0,0,1423,NA,NA,NA,NA,NA,"Paula Kat Charlotte (1561)"
+"neighbourhood_group","character",28795,0,0,1,NA,NA,NA,NA,NA,"Christchurch City (28795)"
+"neighbourhood","character",28795,0,0,16,NA,NA,NA,NA,NA,"Central Ward (10554)"
+"latitude","numeric",28795,0,0,3753,-43.87,-43.42,-43.56,-43.53,0.08,NA
+"longitude","numeric",28795,0,0,3799,172.43,173.1,172.66,172.64,0.1,NA
+"room_type","character",28795,0,0,4,NA,NA,NA,NA,NA,"Entire home/apt (22765)"
+"price","numeric",28795,10667,37.04,820,27,43654,260.2,205,943.72,NA
+"minimum_nights","numeric",28795,37,0.13,28,1,365,1.79,1,5.51,NA
+"number_of_reviews","numeric",28795,0,0,776,0,1584,70.39,26,120.51,NA
+"last_review","character",28795,0,0,746,NA,NA,NA,NA,NA," (2627)"
+"reviews_per_month","numeric",28795,2627,9.12,1128,0.01,16.57,2.35,1.7,2.19,NA
+"calculated_host_listings_count","numeric",28795,0,0,109,1,1586,58.3,3,188.53,NA
+"availability_365","numeric",28795,0,0,366,0,365,203.8,225,112.28,NA
+"number_of_reviews_ltm","numeric",28795,0,0,161,0,185,19,10,23.5,NA
+"license","character",28795,28795,100,0,NA,NA,NA,NA,NA,NA
+"month_year","character",28795,0,0,9,NA,NA,NA,NA,NA,"2026-06 (3469)"
