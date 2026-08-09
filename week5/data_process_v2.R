@@ -1,29 +1,20 @@
-# Week 5 作业：Airbnb listings（基督城，2025年10月-2026年6月）
-# Week 5 assignment: Airbnb listings (Christchurch, Oct 2025 - Jun 2026)
-#
-# 只依赖基础 R，无需安装任何包
-# Requires base R only, no extra packages needed
-#
-# 运行方式：把本脚本放在包含 origin_data 文件夹的目录下，然后 source("listings_processing.R")
-# How to run: put this script in the folder containing the origin_data folder, then source("listings_processing.R")
-
-# 数据文件夹路径（按需修改）
-# Path to the data folder (change if needed)
-data_dir <- "origin_data"
+# 数据文件夹路径
+# Path to the data folder
+data_dir <- "week5/origin_data"
 
 # 输出文件：拼接后的数据集 / 汇总统计表
 # Output files: concatenated dataset / summary statistics
 out_file <- "christchurch_listings.csv"
 sum_file <- "summary_statistics.csv"
 
-# 作业要求的月份范围，文件名形如 "05_October, 2025.csv"，按 "月, 年" 匹配
-# Required month range; file names look like "05_October, 2025.csv", matched by "Month, Year"
+# 文件名形如 "05_October, 2025.csv"，按 "月, 年" 匹配
+# Required months (in "Month, Year" format) to match filenames like "05_October, 2025.csv"
 required_months <- c("October, 2025", "November, 2025", "December, 2025",
                      "January, 2026", "February, 2026", "March, 2026",
                      "April, 2026", "May, 2026", "June, 2026")
 
-# 月份名转数字，用于生成 "YYYY-MM" 列
-# Map month names to numbers for the "YYYY-MM" column
+# 月份名转数字
+# Map month name to number
 month_num <- c(January = 1, February = 2, March = 3, April = 4, May = 5, June = 6,
                July = 7, August = 8, September = 9, October = 10, November = 11,
                December = 12)
@@ -34,7 +25,7 @@ all_files <- list.files(data_dir, pattern = "\\.csv$", full.names = TRUE)
 if (length(all_files) == 0) stop("No CSV files found in: ", data_dir)
 
 # 只保留覆盖所需月份的 9 个文件
-# Keep only the files covering the 9 required months
+# Keep only the 9 files that cover the required months
 keep <- vapply(all_files,
                function(f) any(vapply(required_months, function(m)
                  grepl(m, basename(f), fixed = TRUE), logical(1))),
@@ -46,25 +37,24 @@ print(basename(files))
 
 # 提示哪些月份缺少文件
 # Warn about months with no file
-missing_months <- required_months[!vapply(required_months, function(m)
-  any(grepl(m, basename(files), fixed = TRUE)), logical(1))]
-if (length(missing_months) > 0)
-  warning("No file found for: ", paste(missing_months, collapse = ", "))
+# missing_months <- required_months[!vapply(required_months, function(m)
+#   any(grepl(m, basename(files), fixed = TRUE)), logical(1))]
+# if (length(missing_months) > 0)
+#   warning("No file found for: ", paste(missing_months, collapse = ", "))
 
-# id / host_id 按字符读入，避免 19 位大整数在数值型下丢失精度
-# Read id / host_id as character to keep the full 19-digit IDs exact
+# id / host_id/ last_review按字符读入
+# Read id / host_id/ last_review as character
 read_opts <- list(stringsAsFactors = FALSE, check.names = FALSE,
-                  colClasses = c(id = "character", host_id = "character"))
+                  colClasses = c(id = "character", host_id = "character", last_review = "character"))
 
 all_data <- vector("list", length(files))
 
-# 逐文件读取、筛选基督城、添加月份列，存入列表
-# Read each file, filter Christchurch, add the month column, store in a list
+
 for (i in seq_along(files)) {
   f  <- files[i]
   d  <- do.call(read.csv, c(list(file = f), read_opts))
 
-  # 只保留基督城的数据
+  # 只保留基督城
   # Keep Christchurch rows only
   n_before <- nrow(d)
   d <- d[d$neighbourhood_group == "Christchurch City", , drop = FALSE]
@@ -72,8 +62,8 @@ for (i in seq_along(files)) {
                   basename(f), n_before, nrow(d)))
   if (nrow(d) == 0) warning("No Christchurch rows in ", basename(f))
 
-  # 从文件名提取年份和月份，生成 month_year（如 "2025-10"）
-  # Extract year and month from the file name to build month_year (e.g. "2025-10")
+  # 生成 month_year
+  # build month_year
   nm  <- basename(f)
   yr  <- regmatches(nm, regexpr("20[0-9]{2}", nm))
   mo  <- regmatches(nm, regexpr("[A-Za-z]+,", nm))
@@ -88,34 +78,36 @@ for (i in seq_along(files)) {
 chch_all <- do.call(rbind, all_data)
 row.names(chch_all) <- NULL
 
-# 去重：若两位成员下载了同一个月，相同的 (id, month_year) 行只保留一条
-# De-duplicate: if two members downloaded the same month, keep one row per (id, month_year)
-before_dedup <- nrow(chch_all)
-chch_all <- chch_all[!duplicated(chch_all[, c("id", "month_year")]), ]
-message("Duplicated (listing, month) rows removed: ", before_dedup - nrow(chch_all))
+# # 去重：若两位成员下载了同一个月，相同的 (id, month_year) 行只保留一条
+# # De-duplicate: if two members downloaded the same month, keep one row per (id, month_year)
+# before_dedup <- nrow(chch_all)
+# chch_all <- chch_all[!duplicated(chch_all[, c("id", "month_year")]), ]
+# message("Duplicated (listing, month) rows removed: ", before_dedup - nrow(chch_all))
 
 message("\nConcatenated dataset: ", nrow(chch_all), " rows x ",
         ncol(chch_all), " columns")
 print(table(chch_all$month_year))
 
-# 校验 month_year 全部为 "YYYY-MM" 格式，与汇总保持一致
-# Check that all month_year values are "YYYY-MM", consistent with the summary
-if (!all(grepl("^[0-9]{4}-[0-9]{2}$", chch_all$month_year)))
-  warning("Some month_year values are NOT in YYYY-MM format - check file names!")
 
-# 对每一列生成类型感知的汇总统计
-# Type-aware summary statistics for every column
+# 对每一列生成汇总统计
+# summary statistics for every column
 summarise_col <- function(x, name) {
   is_num <- is.numeric(x)
   n_obs  <- sum(!is.na(x))
 
   # 无有效观测时返回 NA，避免出现 Inf/NaN（如全空的 license 列）
-  # Return NA when there are no valid observations, avoiding Inf/NaN (e.g. all-NA license)
+  # Return NA when there are no valid observations, avoiding Inf/NaN
   stat <- function(fun) if (n_obs > 0) round(fun(x, na.rm = TRUE), 2) else NA
 
-  # 出现次数最多的取值；并列第一时全部列出（并列过多时只列数量并举例）
+  # 出现次数最多的取值；并列第一时全部列出，并列过多时只列数量并举例）
   # Most frequent value(s); list all when tied, or give the count plus examples when ties are many
   top_value <- function(x) {
+
+    # 过滤掉空字符串和 NA
+    #filter out empty strings and NA
+    x <- x[!is.na(x) & x != ""]
+    if (length(x) == 0) return(NA)
+
     tt <- sort(table(x), decreasing = TRUE)
     if (length(tt) == 0) return(NA)
     mx  <- tt[1]

@@ -11,7 +11,7 @@
 "price","numeric",28795,10667,37.04,820,27,43654,260.2,205,943.72,NA
 "minimum_nights","numeric",28795,37,0.13,28,1,365,1.79,1,5.51,NA
 "number_of_reviews","numeric",28795,0,0,776,0,1584,70.39,26,120.51,NA
-"last_review","character",28795,0,0,746,NA,NA,NA,NA,NA," (2627)"
+"last_review","character",28795,0,0,746,NA,NA,NA,NA,NA,"2026-02-28 (364)"
 "reviews_per_month","numeric",28795,2627,9.12,1128,0.01,16.57,2.35,1.7,2.19,NA
 "calculated_host_listings_count","numeric",28795,0,0,109,1,1586,58.3,3,188.53,NA
 "availability_365","numeric",28795,0,0,366,0,365,203.8,225,112.28,NA

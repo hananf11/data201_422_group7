@@ -1,43 +1,19 @@
-# =====================================================================
-#  Week 5 assignment - Airbnb listings (Christchurch, Oct 2025 - Jun 2026)
-#
-#  1. Read all listings.csv files (Oct 2025 - Jun 2026) downloaded by the team
-#  2. Filter to Christchurch City only
-#  3. Add a "month_year" column (e.g. "2025-10")
-#  4. Concatenate all months into one dataset
-#  5. Produce summary statistics for every column (type-aware)
-#     + missing-value counts
-#  6. Save the concatenated dataset to a new file
-#
-#  DEPENDENCIES: base R only - NO extra packages need to be installed.
-#  (If you prefer dplyr/tidyverse you may use them, but this script runs
-#   with a plain R installation, e.g. R >= 4.0 from https://cran.r-project.org)
-#
-#  HOW TO RUN:  set the working directory to the folder containing the
-#  "origin_data" folder, then run:  source("listings_processing.R")
-# =====================================================================
 
-# ---------------------------------------------------------------------
-# 0. Configuration - adjust these paths if needed
-# ---------------------------------------------------------------------
-data_dir <- "week5_extract/week5/origin_data"                # folder with the team's CSV files
-out_file <- "christchurch_listings.csv"   # output: concatenated dataset
-sum_file <- "summary_statistics.csv"                         # output: summary table
+data_dir <- "week5/origin_data"                
+out_file <- "christchurch_listings.csv"   
+sum_file <- "summary_statistics.csv"                       
 
-# Months required for the assignment (Oct 2025 - Jun 2026).
-# File names look like "05_October, 2025.csv", so we match on "Month, Year".
+# Months required 
 required_months <- c("October, 2025",  "November, 2025", "December, 2025",
                      "January, 2026",  "February, 2026", "March, 2026",
                      "April, 2026",    "May, 2026",      "June, 2026")
 
-# Map month name -> month number (for a clean "YYYY-MM" column)
+# Map month name
 month_num <- c(January = 1, February = 2, March = 3, April = 4, May = 5, June = 6,
                July = 7, August = 8, September = 9, October = 10, November = 11,
                December = 12)
 
-# ---------------------------------------------------------------------
-# 1. Find the CSV files that cover the required months
-# ---------------------------------------------------------------------
+
 all_files <- list.files(data_dir, pattern = "\\.csv$", full.names = TRUE)
 if (length(all_files) == 0) stop("No CSV files found in: ", data_dir)
 
@@ -55,11 +31,6 @@ missing_months <- required_months[!vapply(required_months, function(m)
 if (length(missing_months) > 0)
   warning("No file found for: ", paste(missing_months, collapse = ", "))
 
-# ---------------------------------------------------------------------
-# 2-4. Read each file, filter Christchurch, add month_year, concatenate
-# ---------------------------------------------------------------------
-# NOTE: id / host_id are read as character so that the full 19-digit IDs
-#       are kept exactly (R's numeric type would lose precision above ~9e15).
 read_opts <- list(stringsAsFactors = FALSE, check.names = FALSE,
                   colClasses = c(id = "character", host_id = "character"))
 
@@ -69,14 +40,14 @@ for (i in seq_along(files)) {
   f  <- files[i]
   d  <- do.call(read.csv, c(list(file = f), read_opts))
 
-  # --- filter: Christchurch only ---
+  # filter: Christchurch
   n_before <- nrow(d)
   d <- d[d$neighbourhood_group == "Christchurch City", , drop = FALSE]
   message(sprintf("  %-28s %8d rows -> %6d Christchurch rows",
                   basename(f), n_before, nrow(d)))
   if (nrow(d) == 0) warning("No Christchurch rows in ", basename(f))
 
-  # --- add month + year column, taken from the file name ---
+  # add month + year column
   nm  <- basename(f)
   yr  <- regmatches(nm, regexpr("20[0-9]{2}", nm))            # e.g. "2025"
   mo  <- regmatches(nm, regexpr("[A-Za-z]+,", nm))            # e.g. "October,"
@@ -91,26 +62,23 @@ row.names(chch_all) <- NULL
 
 # --- defensive de-duplication: if two team members downloaded the same
 # --- month, the identical (id + month) rows are removed -----------------
-before_dedup <- nrow(chch_all)
-chch_all <- chch_all[!duplicated(chch_all[, c("id", "month_year")]), ]
-message("Duplicated (listing, month) rows removed: ", before_dedup - nrow(chch_all))
+#before_dedup <- nrow(chch_all)
+#chch_all <- chch_all[!duplicated(chch_all[, c("id", "month_year")]), ]
+#message("Duplicated (listing, month) rows removed: ", before_dedup - nrow(chch_all))
 
 message("\nConcatenated dataset: ", nrow(chch_all), " rows x ",
         ncol(chch_all), " columns")
 print(table(chch_all$month_year))
 
 # --- format check: month_year must be "YYYY-MM" (e.g. 2026-06), same as summary ---
-if (!all(grepl("^[0-9]{4}-[0-9]{2}$", chch_all$month_year)))
-  warning("Some month_year values are NOT in YYYY-MM format - check file names!")
+#if (!all(grepl("^[0-9]{4}-[0-9]{2}$", chch_all$month_year)))
+#  warning("Some month_year values are NOT in YYYY-MM format - check file names!")
 
-# ---------------------------------------------------------------------
-# 5. Summary statistics for every column + missing values
-# ---------------------------------------------------------------------
+
 summarise_col <- function(x, name) {
   is_num <- is.numeric(x)
   n_obs  <- sum(!is.na(x))          # number of non-missing values
-  # helper: return NA when there are no non-missing values (e.g. all-NA column),
-  # otherwise compute the statistic - keeps output consistent with Python (NaN/Inf avoided)
+
   stat <- function(fun) if (n_obs > 0) round(fun(x, na.rm = TRUE), 2) else NA
   row <- data.frame(
     column       = name,
