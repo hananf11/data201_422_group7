@@ -18,6 +18,21 @@ for (file in files) {
 print("Loaded all files. Unique year / month combinations:")
 print(unique(listings[c('year', 'month')]))
 
-print(colnames(listings))
-
 listings_christchurch <- listings[listings$neighbourhood_group == "Christchurch City",]
+
+na_counts <- sapply(listings_christchurch, function(x) sum(is.na(x)))
+
+na_counts <- data.frame(
+  Column = names(na_counts),
+  `Missing Values` = as.integer(na_counts),
+  row.names = NULL
+)
+
+print(na_counts)
+
+count_per_room_type <- table(listings_christchurch$room_type)
+
+print(count_per_room_type)
+
+# store the data in a csv file
+write.csv(listings_christchurch, "./data/listings_christchurch.csv", row.names = FALSE)
