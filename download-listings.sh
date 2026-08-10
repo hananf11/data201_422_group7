@@ -9,6 +9,7 @@ mkdir -p "$DATA_DIR"
 mapfile -t listing_urls < <(
   curl -fsSL "https://insideairbnb.com/get-the-data/" |
     grep -oE 'https://data\.insideairbnb\.com/[^"]+/visualisations/listings\.csv' |
+    tr -d '\r' |
     sort -u
 )
 
