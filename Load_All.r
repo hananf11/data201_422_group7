@@ -36,3 +36,6 @@ print(count_per_room_type)
 
 # store the data in a csv file
 write.csv(listings_christchurch, "./data/listings_christchurch.csv", row.names = FALSE)
+
+print(hist(
+  listings_christchurch$price, main = "Price Distribution in Christchurch", xlab = "Price", ylab = "Frequency", col = "blue", breaks = 100))
