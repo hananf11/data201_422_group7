@@ -41,3 +41,33 @@ Here are the details for ths listings.csv file.
 | license                        | text     | The licence/permit/registration number                                                                                                                                                                |
 | calculated_host_listings_count | integer  | The number of listings the host has in the current scrape, in the city/region geography.                                                                                                              |
 | reviews_per_month              | numeric  | The average number of reviews per month the listing has over the lifetime of the listing.                                                                                                             |
+
+
+## Cleaning christchurch_listing dataset
+- Column "license" was removed because its value in all row is the same("NA").
+- Exact duplicate rows were checked and removed.
+- Empty cell value was replaced with "NA" for easier reading and overall file consistency.
+
+## Cleaning Rental Bond Data
+- Filtered by TimeFrame to match the other dataset.
+- NULL strings in place of real missing values → converted to NA on import.
+- Location.Id sentinel codes (-99, blank) are legitimate aggregate rows, not errors — retained, but flagged with a derived location_scope column.
+- Number.Of.Beds mixes numeric codes, "ALL", "5+", and the literal string "NA" — the literal "NA" was not treated as missing on import (it is a distinct category in the source data), and a separate numeric column was added for rows where a true numeric bedroom count exists.
+- Rent and dispersion columns were read in as character (due to quoting) and converted to numeric.
+
+### Columns
+
+| Column | Meaning |
+|---|---|
+| `TimeFrame` | The quarter summarised, based on tenancy start date (e.g. `2026-04-01` = Q2 2026). |
+| `Location Id` | Geographic area code using the SA2-2019 classification (Statistics NZ). Special codes: `-99` = all of New Zealand (national total); blank/`NULL` = unclassified/unknown location. |
+| `Dwelling Type` | Type of rental property: `ALL` (aggregate), `House`, `Apartment`, `Flat`, `Boarding House`, `Room`. |
+| `Number Of Beds` | Bedroom count for the group: `ALL` (aggregate), `0`–`9`, or `5+` (5 or more, used when individual counts are suppressed for privacy). |
+| `Total Bonds` | Number of new bonds lodged in that quarter for the group. |
+| `Active Bonds` | Number of bonds that were active (in force) at some point during the quarter. |
+| `Closed Bonds` | Number of bonds closed (tenancy ended) during the quarter. |
+| `Median Rent` | Median weekly rent (NZD) for the group. |
+| `Geometric Mean Rent` | Geometric mean of weekly rent (NZD). MBIE uses this instead of the median because rents cluster at round dollar values, which makes the plain median "plateau" for months at a time. |
+| `Upper Quartile Rent` | Synthetic 75th-percentile weekly rent, modelled assuming a log-normal rent distribution (not a raw quartile of the observed values). |
+| `Lower Quartile Rent` | Synthetic 25th-percentile weekly rent, calculated the same way. |
+| `Log Std Dev Weekly Rent` | Standard deviation of the natural log of weekly rent — a measure of how spread out rents are within the group. |
