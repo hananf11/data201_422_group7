@@ -51,8 +51,8 @@ Here are the details for ths listings.csv file.
 ## Cleaning Rental Bond Data
 - Filtered by TimeFrame to match the other dataset.
 - NULL strings in place of real missing values → converted to NA on import.
-- Location.Id sentinel codes (-99, blank) are legitimate aggregate rows, not errors — retained, but flagged with a derived location_scope column.
-- Number.Of.Beds mixes numeric codes, "ALL", "5+", and the literal string "NA" — the literal "NA" was not treated as missing on import (it is a distinct category in the source data), and a separate numeric column was added for rows where a true numeric bedroom count exists.
+- Location Id sentinel codes (-99, blank) are legitimate aggregate rows, not errors — retained, but flagged with a derived location_scope column.
+- Number Of Beds mixes numeric codes, "ALL", "5+", and the literal string "NA" — the literal "NA" was not treated as missing on import (it is a distinct category in the source data), and a separate numeric column was added for rows where a true numeric bedroom count exists.
 - Rent and dispersion columns were read in as character (due to quoting) and converted to numeric.
 
 ### Columns
