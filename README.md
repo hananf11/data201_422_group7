@@ -62,7 +62,7 @@ Here are the details for ths listings.csv file.
 | `TimeFrame` | The quarter summarised, based on tenancy start date (e.g. `2026-04-01` = Q2 2026). |
 | `Location Id` | Geographic area code using the SA2-2019 classification (Statistics NZ). Special codes: `-99` = all of New Zealand (national total); blank/`NULL` = unclassified/unknown location. |
 | `Dwelling Type` | Type of rental property: `ALL` (aggregate), `House`, `Apartment`, `Flat`, `Boarding House`, `Room`. |
-| `Number Of Beds` | Bedroom count for the group: `ALL` (aggregate), `0`–`9`, or `5+` (5 or more, used when individual counts are suppressed for privacy). |
+| `Number Of Beds` | Bedroom count for the group: `ALL` (aggregate), `0`–`5`, or `5+` (5 or more, used when individual counts are suppressed for privacy). |
 | `Total Bonds` | Number of new bonds lodged in that quarter for the group. |
 | `Active Bonds` | Number of bonds that were active (in force) at some point during the quarter. |
 | `Closed Bonds` | Number of bonds closed (tenancy ended) during the quarter. |
