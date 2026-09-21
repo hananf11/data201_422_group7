@@ -5,7 +5,7 @@ library(dplyr)
 library(readr)
 library(janitor)
 
-start_date <- as.Date("2025-01-01")
+start_date <- as.Date("2025-10-01")
 end_date   <- as.Date("2026-09-30")
 
 raw <- read_csv("delivery4/data/Detailed-Quarterly-Tenancy-Q1-2020-Q3-2026.csv", na = c("NULL"), col_types = cols(.default = col_character()))

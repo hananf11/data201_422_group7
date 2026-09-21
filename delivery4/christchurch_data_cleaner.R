@@ -2,9 +2,9 @@ library(tidyverse)
 
 listings <- read_csv("delivery4/data/christchurch_listings_v2.csv")
 
-# remove license column
+# remove license and host_name columns
 listings_clean <- listings %>%
-  select(-license)
+  select(-license, -host_name)
 
 # replace empty strings with NA
 listings_clean <- listings_clean %>%
