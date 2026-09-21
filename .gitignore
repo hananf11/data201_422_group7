@@ -5,3 +5,4 @@ week5/Dictionary.xlsx
 data/*
 delivery4/data/*
 **/.env
+**/*.csv
