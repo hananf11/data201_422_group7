@@ -6,3 +6,4 @@ data/*
 delivery4/data/*
 **/.env
 **/*.csv
+__pycache__/

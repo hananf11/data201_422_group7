@@ -36,7 +36,7 @@ def main():
     csv_out = "./christchurch_listings_clean_with_area.csv"
     df = pd.read_csv(csv_in)
     # test with point 172.8294261, -43.65541852, in area "Banks Peninsula Eastern Bays"
-    df["area"] = df.apply(
+    df["location_id"] = df.apply(
         lambda row: search_api_for_location(row["longitude"], row["latitude"]), axis=1
     )
     df.to_csv(csv_out, index=False)
