@@ -1,3 +1,6 @@
+# install.packages("tidyverse")
+# install.packages("janitor")
+library(janitor)
 library(tidyverse)
 
 listings <- read_csv("delivery4/data/christchurch_listings_v2.csv")

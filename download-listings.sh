@@ -6,17 +6,24 @@ set -euo pipefail
 DATA_DIR="${1:-./data/listings}"
 mkdir -p "$DATA_DIR"
 
-mapfile -t listing_urls < <(
-  curl -fsSL "https://insideairbnb.com/get-the-data/" |
-    grep -oE 'https://data\.insideairbnb\.com/[^"]+/visualisations/listings\.csv' |
-    sort -u
+urls=(
+  "https://data.insideairbnb.com/new-zealand/2026-06-19/visualisations/listings.csv"
+  "https://data.insideairbnb.com/new-zealand/2026-05-23/visualisations/listings.csv"
+  "https://data.insideairbnb.com/new-zealand/2026-04-16/visualisations/listings.csv"
+  "https://data.insideairbnb.com/new-zealand/2026-03-17/visualisations/listings.csv"
+  "https://data.insideairbnb.com/new-zealand/2026-02-13/visualisations/listings.csv"
+  "https://data.insideairbnb.com/new-zealand/2026-01-16/visualisations/listings.csv"
+  "https://data.insideairbnb.com/new-zealand/2025-12-11/visualisations/listings.csv"
+  "https://data.insideairbnb.com/new-zealand/2025-11-07/visualisations/listings.csv"
+  "https://data.insideairbnb.com/new-zealand/2025-10-05/visualisations/listings.csv"
 )
 
-for listing_url in "${listing_urls[@]}"; do
-  slug=$(echo "$listing_url" | sed -E 's#https://data.insideairbnb.com/##; s#/visualisations/listings.csv##; s#[0-9]{4}-[0-9]{2}-[0-9]{2}$##; s#/$##; s#/#_#g')
-  outfile="$DATA_DIR/${slug}_listings.csv"
-  echo "Downloading $slug..."
-  curl -fsSL -o "$outfile" "$listing_url"
+for url in "${urls[@]}"; do
+  # take out the date from the url
+  date=$(echo "$url" | sed -E 's#https://data.insideairbnb.com/new-zealand/##; s#/visualisations/listings.csv##')
+  outfile="$DATA_DIR/${date}_listings.csv"
+  echo "Downloading $date..."
+  curl -fsSL -o "$outfile" "$url" && echo "Downloaded $date"
 done
 
-echo "Downloaded ${#listing_urls[@]} listing files to $DATA_DIR"
+echo "Downloaded ${#urls[@]} listing files to $DATA_DIR"
