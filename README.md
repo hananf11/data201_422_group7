@@ -71,3 +71,18 @@ Here are the details for ths listings.csv file.
 | `Upper Quartile Rent` | Synthetic 75th-percentile weekly rent, modelled assuming a log-normal rent distribution (not a raw quartile of the observed values). |
 | `Lower Quartile Rent` | Synthetic 25th-percentile weekly rent, calculated the same way. |
 | `Log Std Dev Weekly Rent` | Standard deviation of the natural log of weekly rent — a measure of how spread out rents are within the group. |
+
+
+Week 10
+Code changed:
+Deliverable 4: 
+- Created an output folder for the output file
+- Specified input and output folders in the code 
+- Added a header describing the purpose of the code 
+
+Deliverable 5: 
+- Changed the code so the merged csv with area code and time is saved in the output folder. 
+- Removed the "magic number" 326600 and specified it's the christchurch central id in the code
+
+Sanity check idea for deliverable 5:
+Before merging the area code and time datasets, check if the rental data is missing any required columns. 

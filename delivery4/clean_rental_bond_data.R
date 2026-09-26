@@ -1,3 +1,4 @@
+# Cleans quarterly rental bond data
 #install.packages("dplyr")
 #install.packages("readr")
 #install.packages("janitor")
@@ -8,7 +9,13 @@ library(janitor)
 start_date <- as.Date("2025-01-01")
 end_date   <- as.Date("2026-09-30")
 
-raw <- read_csv("delivery4/data/Detailed-Quarterly-Tenancy-Q1-2020-Q3-2026.csv", na = c("NULL"), col_types = cols(.default = col_character()))
+input_file <- "delivery4/data/Detailed-Quarterly-Tenancy-Q1-2020-Q3-2026.csv"
+output_file <- "delivery4/output/cleaned_rental_bond_data.csv"
+
+
+raw <- read_csv(input_file, 
+na = c("NULL"), 
+col_types = cols(.default = col_character()))
 
 
 # clean headers and convert to appropriate data types
@@ -55,4 +62,4 @@ clean <- clean %>%
 #count(clean, location_scope)
 #range(clean$time_frame)
 
-write_csv(clean, "delivery4/data/cleaned_rental_bond_data.csv")
+write_csv(clean, "delivery4/output/cleaned_rental_bond_data.csv")

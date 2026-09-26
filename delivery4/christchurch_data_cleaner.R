@@ -1,9 +1,13 @@
+# Cleans Christchurch Airbnb listings
 # install.packages("tidyverse")
 # install.packages("janitor")
 library(janitor)
 library(tidyverse)
 
-listings <- read_csv("delivery4/data/christchurch_listings_v2.csv")
+input_file <- "delivery4/data/christchurch_listings_v2.csv"
+output_file <- "delivery4/output/christchurch_listings_clean.csv"
+
+listings <- read_csv(input_file)
 
 # remove license column
 listings_clean <- listings %>%
@@ -27,5 +31,5 @@ rows_removed <- rows_before - rows_after
 
 write_csv(
   listings_clean,
-  "delivery4/data/christchurch_listings_clean.csv"
+  "delivery4/output/christchurch_listings_clean.csv"
 )
