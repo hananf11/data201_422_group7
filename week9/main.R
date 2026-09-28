@@ -22,11 +22,15 @@ listings_csv$quarter <- date_to_quarter(listings_csv$month_year)
 # join on columns "quarter", "location_id"
 merged_csv <- merge(rental_csv, listings_csv, by = c("quarter", "location_id"))
 
-# 326600 = Christchurch Central
-merged_christchurch_data <- merged_csv[merged_csv$location_id == "326600",]
+christchurch_central_id <- "326600"
+merged_christchurch_data <- merged_csv %>%
+  filter(location_id == christchurch_central_id)
+
 # print(merged_christchurch_data$price[1:5])
 median_christchurch_price <- median(merged_christchurch_data$price, na.rm = TRUE)
 print(paste0("The median price of rentals in Christchurch Central is: $", median_christchurch_price))
 
-write.csv(merged_csv, "./merged_rental_and_listings_data.csv", row.names = FALSE)
+# save merged data to output folder
+dir.create("./output", showWarnings = FALSE, recursive = TRUE)
+write.csv(merged_csv, "./output/merged_rental_and_listings_data.csv", row.names = FALSE)
 
