@@ -9,9 +9,9 @@ output_file <- "delivery4/output/christchurch_listings_clean.csv"
 
 listings <- read_csv(input_file)
 
-# remove license column
+# remove license and host_name columns
 listings_clean <- listings %>%
-  select(-license)
+  select(-license, -host_name)
 
 # replace empty strings with NA
 listings_clean <- listings_clean %>%
