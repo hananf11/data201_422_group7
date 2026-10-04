@@ -110,6 +110,7 @@ How the Deliverable 7 pipeline evolved, commit by commit:
 | `ce42fcd` 2026-10-04 | Fixed `main.py` to read listing ids as strings; gitignored `week9/data/`; regenerated the step 8 output | 19-digit ids had been float-corrupted (a known week 9 issue); the detailed scrape `.gz` was not ignored |
 | `c14b472` 2026-10-05 | Made the pipeline self-contained inside `week11/`: moved `main.py`/`step7/step8` and all data here, 10 stages → 8 (cross-directory sync copies removed) | one directory holds the whole deliverable; runs identically from anywhere |
 | `766df1c` 2026-10-05 | Repaired the corrupted ids in `christchurch_listings_clean_with_area.csv` (`fix_with_area_ids.py`, positional repair from `christchurch_listings_v2.csv`, no API calls); step 8's bed comparison simplified back to matching by listing id (3,469 vs 3,468 matched); `run_all.sh` reduced to plain sequential execution | with correct ids the coordinate workaround was unnecessary; after weighing the options the orchestrator was deliberately kept "dumb" (run every stage in order, `set -e`) — an intermediate version with mtime/fingerprint skip logic worked but was more complex than the team wanted to maintain |
+| `1695409` 2026-10-05 | Incremental geocoding in `main.py`: the with_area output is now a cache — rows with an already-geocoded id reuse their area, only unknown ids call the API (once per id, deduplicated across months) | a listing's coordinates never change so its area never changes; with all 13 months in the pipeline (41,614 listing-month rows) a full refresh needs **277 calls instead of 41,614** (~150×); missing key / missing `requests`+`python-dotenv` now exit with clear messages, and both imports are lazy so the stage still runs when nothing is new |
 
 Lessons recorded along the way:
 
@@ -120,6 +121,6 @@ Lessons recorded along the way:
   ids corrupted by float conversion (fixed in `main.py`, repaired in the
   existing output), and `main.R` running without dplyr (fixed in the Python
   port).
-- Next step when a Koordinates API key is available: add incremental caching
-  to `main.py` (geocode only ids not already in the with_area output) — with
-  the sequential orchestrator this is what keeps each run cheap.
+- Incremental caching is in place (`1695409`): `main.py` geocodes only the
+  277 ids not yet in the with_area output, so the one command stays cheap
+  even though the orchestrator itself runs every stage in order.
