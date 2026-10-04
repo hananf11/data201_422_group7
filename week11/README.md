@@ -97,3 +97,29 @@ merging, and all plots are regenerated.
   With the ids fixed, step 8's bed comparison matches the detailed scrape by
   listing id again instead of the 6-dp coordinate workaround (3,469 vs 3,468
   matched listings — the two methods agree).
+
+## Development history (commit iteration)
+
+How the Deliverable 7 pipeline evolved, commit by commit:
+
+| Commit | What changed | Why |
+|---|---|---|
+| (week 9 baseline: `caf443f`, `c6a2eb9`) | Week 9 scripts: `main.py` (Koordinates geocoding), `main.R` (merge), `step7/step8` analyses and plots | the analyses the pipeline now automates |
+| `e195659` 2026-10-04 | Rewrote the four R scripts as Python (`load_all.py`, `clean_listings.py`, `clean_rental_bond.py`, `merge_rental_listings.py`) | unify the whole pipeline to one language; the ports reproduce the published step 7/8 results on the same inputs. Also surfaced that `main.R` used `%>%` without loading dplyr and only ran inside an R session |
+| `96989c9` 2026-10-04 | Added `run_all.sh` (orchestrator with per-stage input/output checks and skip-when-up-to-date logic) + this README | the assignment's "one command" requirement; skipping avoids re-running the ~35k-call geocoding stage when nothing changed |
+| `ce42fcd` 2026-10-04 | Fixed `main.py` to read listing ids as strings; gitignored `week9/data/`; regenerated the step 8 output | 19-digit ids had been float-corrupted (a known week 9 issue); the detailed scrape `.gz` was not ignored |
+| `c14b472` 2026-10-05 | Made the pipeline self-contained inside `week11/`: moved `main.py`/`step7/step8` and all data here, 10 stages → 8 (cross-directory sync copies removed) | one directory holds the whole deliverable; runs identically from anywhere |
+| `766df1c` 2026-10-05 | Repaired the corrupted ids in `christchurch_listings_clean_with_area.csv` (`fix_with_area_ids.py`, positional repair from `christchurch_listings_v2.csv`, no API calls); step 8's bed comparison simplified back to matching by listing id (3,469 vs 3,468 matched); `run_all.sh` reduced to plain sequential execution | with correct ids the coordinate workaround was unnecessary; after weighing the options the orchestrator was deliberately kept "dumb" (run every stage in order, `set -e`) — an intermediate version with mtime/fingerprint skip logic worked but was more complex than the team wanted to maintain |
+
+Lessons recorded along the way:
+
+- The historical raw monthly files and the pre-repair `v2`/`clean` CSVs were
+  recovered from a group backup after a partial re-run overwrote them — keep
+  `week11/data/listings/` complete; it is the only source of truth.
+- Two data bugs were found and fixed during the unification: 19-digit listing
+  ids corrupted by float conversion (fixed in `main.py`, repaired in the
+  existing output), and `main.R` running without dplyr (fixed in the Python
+  port).
+- Next step when a Koordinates API key is available: add incremental caching
+  to `main.py` (geocode only ids not already in the with_area output) — with
+  the sequential orchestrator this is what keeps each run cheap.
