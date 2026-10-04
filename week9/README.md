@@ -1,5 +1,10 @@
 # Week 9 — Steps 7 & 8: rental gap and supply comparison
 
+> **Note (Week 11):** `main.py`, `step7_rental_gap.py` and
+> `step8_supply_comparison.py` have moved to `week11/`, where the whole
+> pipeline is now automated — see `week11/README.md`. This document describes
+> the original week 9 layout.
+
 Scripts (Python, run from repo root):
 
 ```

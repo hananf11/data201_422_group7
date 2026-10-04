@@ -19,9 +19,9 @@ import os
 
 import pandas as pd
 
-RENTAL_CSV = "week9/data/cleaned_rental_bond_data.csv"
-LISTINGS_CSV = "week9/data/christchurch_listings_clean_with_area.csv"
-OUTPUT_FILE = "week9/output/merged_rental_and_listings_data.csv"
+RENTAL_CSV = "data/cleaned_rental_bond_data.csv"
+LISTINGS_CSV = "data/christchurch_listings_clean_with_area.csv"
+OUTPUT_FILE = "output/merged_rental_and_listings_data.csv"
 
 CHRISTCHURCH_CENTRAL_ID = "326600"
 

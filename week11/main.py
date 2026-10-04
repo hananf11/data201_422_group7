@@ -32,8 +32,8 @@ def search_api_for_location(longitude, latitude):
 
 
 def main():
-    csv_in = "./christchurch_listings_clean.csv"
-    csv_out = "./christchurch_listings_clean_with_area.csv"
+    csv_in = "data/christchurch_listings_clean.csv"
+    csv_out = "data/christchurch_listings_clean_with_area.csv"
     # ids must stay strings: float conversion corrupts 19-digit listing ids
     df = pd.read_csv(csv_in, dtype={"id": str, "host_id": str})
     # test with point 172.8294261, -43.65541852, in area "Banks Peninsula Eastern Bays"

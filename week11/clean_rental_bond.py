@@ -23,8 +23,8 @@ import pandas as pd
 START_DATE = "2025-10-01"
 END_DATE = "2026-09-30"
 
-INPUT_FILE = "delivery4/data/Detailed-Quarterly-Tenancy-Q1-2020-Q3-2026.csv"
-OUTPUT_FILE = "delivery4/output/cleaned_rental_bond_data.csv"
+INPUT_FILE = "data/Detailed-Quarterly-Tenancy-Q1-2020-Q3-2026.csv"
+OUTPUT_FILE = "data/cleaned_rental_bond_data.csv"
 
 NUMERIC_COLUMNS = [
     "total_bonds", "active_bonds", "closed_bonds", "median_rent",

@@ -28,7 +28,7 @@ import pandas as pd
 
 DATA_DIR = "data/listings"
 OUT_CSV = "data/listings_christchurch.csv"
-OUT_PNG = "data/listings_christchurch_price_hist.png"
+OUT_PNG = "output/listings_christchurch_price_hist.png"
 
 CHRISTCHURCH = "Christchurch City"
 
@@ -72,6 +72,7 @@ def main():
     listings_christchurch.to_csv(OUT_CSV, index=False, na_rep="NA")
     print(f"\nWrote {OUT_CSV}")
 
+    os.makedirs(os.path.dirname(OUT_PNG), exist_ok=True)
     fig, ax = plt.subplots(figsize=(10, 6))
     ax.hist(listings_christchurch["price"].dropna(), bins=100, color="tab:blue")
     ax.set_title("Price Distribution in Christchurch")

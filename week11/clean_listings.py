@@ -15,8 +15,8 @@ import os
 
 import pandas as pd
 
-INPUT_FILE = "delivery4/data/christchurch_listings_v2.csv"
-OUTPUT_FILE = "delivery4/output/christchurch_listings_clean.csv"
+INPUT_FILE = "data/christchurch_listings_v2.csv"
+OUTPUT_FILE = "data/christchurch_listings_clean.csv"
 
 
 def main():

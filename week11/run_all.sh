@@ -2,6 +2,10 @@
 # Deliverable 7 — one-command orchestration of the Christchurch rental data
 # pipeline (all stages Python).
 #
+# The whole pipeline runs INSIDE the week11/ directory: data lives in
+# week11/data/, outputs in week11/output/. This script may be invoked from
+# any directory; it changes into its own location first.
+#
 # Usage:
 #   bash week11/run_all.sh
 #
@@ -15,8 +19,8 @@
 # work that is actually needed.
 set -uo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-cd "$ROOT"
+WEEK11="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$WEEK11"
 PYTHON="${PYTHON:-python}"
 
 log()  { printf '\033[1;34m[run_all]\033[0m %s\n' "$*"; }
@@ -38,12 +42,11 @@ newest_mtime() {  # newest mtime among the given files (0 if none exist)
 }
 
 oldest_output_mtime() {  # oldest mtime among existing outputs (empty if none)
-    local have="" f m oldest=""
+    local f m oldest=""
     for f in "$@"; do
         [ -e "$f" ] || continue
         m=$(stat -c %Y "$f") || continue
         if [ -z "$oldest" ] || [ "$m" -lt "$oldest" ]; then oldest=$m; fi
-        have=1
     done
     echo "$oldest"
 }
@@ -90,13 +93,12 @@ run_stage() {
         return 1
     fi
 
-    # already up to date? (every output exists and is newer than every input)
+    # already up to date? (every output exists and is at least as new as every
+    # input; ">=" because an exact copy of its input must not be rebuilt)
     local out_min in_max
     out_min=$(oldest_output_mtime "${outputs[@]}")
     in_max=$(newest_mtime "${inputs[@]}")
     for f in "${outputs[@]}"; do [ -e "$f" ] || all_out=0; done
-    # ">=" (not ">") because cp -p preserves source mtimes: an exact copy of
-    # its input has the same timestamp and must not be rebuilt forever.
     if [ "$all_out" -eq 1 ] && [ -n "$out_min" ] && [ "$out_min" -ge "$in_max" ]; then
         skip "$name: outputs up to date"
         return 0
@@ -118,91 +120,71 @@ run_stage() {
     fi
 }
 
-api_key_available() {
-    [ -n "${KOORDINATES_API_KEY:-}" ] || [ -f week9/.env ]
-}
-
 command -v "$PYTHON" >/dev/null 2>&1 || { err "python interpreter '$PYTHON' not found"; exit 1; }
 
-log "Pipeline root: $ROOT"
+log "Pipeline directory: $WEEK11"
 
 # ---- Stage 1: combine monthly listings -> Christchurch dataset -----------
 run_stage "1_load_listings" \
     data/listings/*.csv \
-    --out data/listings_christchurch.csv data/listings_christchurch_price_hist.png \
-    -- "$PYTHON" week11/load_all.py
+    --out data/listings_christchurch.csv output/listings_christchurch_price_hist.png \
+    -- "$PYTHON" load_all.py
 
-# ---- Stage 2: place combined file where the cleaning stage expects it ----
+# ---- Stage 2: publish combined file under its canonical name -------------
 run_stage "2_sync_combined" \
     data/listings_christchurch.csv \
-    --out delivery4/data/christchurch_listings_v2.csv week9/data/christchurch_listings_v2.csv \
-    -- bash -c 'mkdir -p delivery4/data week9/data
-                cp -p data/listings_christchurch.csv delivery4/data/christchurch_listings_v2.csv
-                cp -p data/listings_christchurch.csv week9/data/christchurch_listings_v2.csv'
+    --out data/christchurch_listings_v2.csv \
+    -- bash -c 'cp -p data/listings_christchurch.csv data/christchurch_listings_v2.csv'
 
 # ---- Stage 3: clean the listings -----------------------------------------
 run_stage "3_clean_listings" \
-    delivery4/data/christchurch_listings_v2.csv \
-    --out delivery4/output/christchurch_listings_clean.csv \
-    -- "$PYTHON" week11/clean_listings.py
+    data/christchurch_listings_v2.csv \
+    --out data/christchurch_listings_clean.csv \
+    -- "$PYTHON" clean_listings.py
 
-# ---- Stage 4: copy cleaned listings into week9/data ----------------------
-run_stage "4_sync_clean" \
-    delivery4/output/christchurch_listings_clean.csv \
-    --out week9/data/christchurch_listings_clean.csv \
-    -- bash -c 'mkdir -p week9/data
-                cp -p delivery4/output/christchurch_listings_clean.csv week9/data/christchurch_listings_clean.csv'
+# ---- Stage 4: clean the rental bond data ---------------------------------
+run_stage "4_clean_bond" \
+    data/Detailed-Quarterly-Tenancy-Q1-2020-Q3-2026.csv \
+    --out data/cleaned_rental_bond_data.csv \
+    -- "$PYTHON" clean_rental_bond.py
 
-# ---- Stage 5: clean the rental bond data ---------------------------------
-run_stage "5_clean_bond" \
-    delivery4/data/Detailed-Quarterly-Tenancy-Q1-2020-Q3-2026.csv \
-    --out delivery4/output/cleaned_rental_bond_data.csv \
-    -- "$PYTHON" week11/clean_rental_bond.py
-
-# ---- Stage 6: copy cleaned bond data into week9/data ---------------------
-run_stage "6_sync_bond" \
-    delivery4/output/cleaned_rental_bond_data.csv \
-    --out week9/data/cleaned_rental_bond_data.csv \
-    -- bash -c 'mkdir -p week9/data
-                cp -p delivery4/output/cleaned_rental_bond_data.csv week9/data/cleaned_rental_bond_data.csv'
-
-# ---- Stage 7: geocode listings via the Koordinates API -------------------
-# Only new/changed listings trigger API calls; the stage is skipped when the
-# API key is unavailable and a previous output already exists.
-if api_key_available; then
-    run_stage "7_geocode_areas" \
-        week9/data/christchurch_listings_clean.csv \
-        --out week9/data/christchurch_listings_clean_with_area.csv \
-        -- bash -c 'cd week9/data && "$0" main.py' "$PYTHON"
+# ---- Stage 5: geocode listings via the Koordinates API -------------------
+# Only listings not yet geocoded need API calls; the stage is skipped when
+# the API key is unavailable and a previous output already exists.
+if [ -n "${KOORDINATES_API_KEY:-}" ] || [ -f .env ]; then
+    run_stage "5_geocode_areas" \
+        data/christchurch_listings_clean.csv \
+        --out data/christchurch_listings_clean_with_area.csv \
+        -- "$PYTHON" main.py
 else
-    if [ -e week9/data/christchurch_listings_clean_with_area.csv ]; then
-        warn "7_geocode_areas: KOORDINATES_API_KEY not set — keeping existing with_area output (add week9/.env to refresh)"
+    if [ -e data/christchurch_listings_clean_with_area.csv ]; then
+        warn "5_geocode_areas: KOORDINATES_API_KEY not set — keeping existing with_area output (add week11/.env to refresh)"
     else
-        err "7_geocode_areas: no API key (week9/.env) and no previous output"
+        err "5_geocode_areas: no API key (.env) and no previous output"
         FAILED=1
     fi
 fi
 
-# ---- Stage 8: merge rentals with listings --------------------------------
-run_stage "8_merge" \
-    week9/data/cleaned_rental_bond_data.csv week9/data/christchurch_listings_clean_with_area.csv \
-    --out week9/output/merged_rental_and_listings_data.csv \
-    -- "$PYTHON" week11/merge_rental_listings.py
+# ---- Stage 6: merge rentals with listings --------------------------------
+run_stage "6_merge" \
+    data/cleaned_rental_bond_data.csv data/christchurch_listings_clean_with_area.csv \
+    --out output/merged_rental_and_listings_data.csv \
+    -- "$PYTHON" merge_rental_listings.py
 
-# ---- Stage 9: analysis — short vs long-term price gap --------------------
-run_stage "9_step7_gap" \
-    week9/data/christchurch_listings_clean_with_area.csv week9/data/cleaned_rental_bond_data.csv \
-    --out week9/output/step7_gap_by_location.csv week9/output/step7_gap_per_listing.csv \
-          week9/output/step7_gap_boxplot_by_location.png week9/output/step7_gap_boxplot_by_ward.png \
-    -- "$PYTHON" week9/step7_rental_gap.py
+# ---- Stage 7: analysis — short vs long-term price gap --------------------
+run_stage "7_step7_gap" \
+    data/christchurch_listings_clean_with_area.csv data/cleaned_rental_bond_data.csv \
+    --out output/step7_gap_by_location.csv output/step7_gap_per_listing.csv \
+          output/step7_gap_boxplot_by_location.png output/step7_gap_boxplot_by_ward.png \
+    -- "$PYTHON" step7_rental_gap.py
 
-# ---- Stage 10: analysis — AirBnB vs long-term supply ---------------------
-run_stage "10_step8_supply" \
-    week9/data/christchurch_listings_clean_with_area.csv week9/data/cleaned_rental_bond_data.csv \
-    week9/data/detailed/listings_detailed_2026-06-19.csv.gz \
-    --out week9/output/step8_counts_by_location.csv week9/output/step8_beds_by_location.csv \
-          week9/output/step8_counts_barplot.png week9/output/step8_beds_barplot.png \
-    -- "$PYTHON" week9/step8_supply_comparison.py
+# ---- Stage 8: analysis — AirBnB vs long-term supply ----------------------
+run_stage "8_step8_supply" \
+    data/christchurch_listings_clean_with_area.csv data/cleaned_rental_bond_data.csv \
+    data/detailed/listings_detailed_2026-06-19.csv.gz \
+    --out output/step8_counts_by_location.csv output/step8_beds_by_location.csv \
+          output/step8_counts_barplot.png output/step8_beds_barplot.png \
+    -- "$PYTHON" step8_supply_comparison.py
 
 echo ""
 if [ "$FAILED" -eq 0 ]; then
