@@ -27,6 +27,7 @@ week11/
 ├── merge_rental_listings.py      stage 6: merge rentals + listings
 ├── step7_rental_gap.py           stage 7: price-gap analysis
 ├── step8_supply_comparison.py    stage 8: supply comparison
+├── fix_with_area_ids.py          one-off repair of corrupted listing ids
 ├── data/                         inputs + intermediates (gitignored)
 │   ├── listings/                 raw monthly listings.csv downloads
 │   ├── detailed/                 detailed scrape (bed counts)
@@ -54,9 +55,8 @@ week11/
    zero-padded official file names (`YYYY-MM-DD_listings.csv`).
 2. Run `bash week11/run_all.sh`.
 
-Every stage checks its inputs/outputs: a stage whose inputs did not change
-since its outputs were written is **skipped**, so only the work that is
-actually needed is redone — the new months flow through cleaning, geocoding,
+The orchestrator simply runs every stage in order (`set -e`, so the first
+failure stops the run), and the new months flow through cleaning, geocoding,
 merging, and all plots are regenerated.
 
 ## Requirements
@@ -73,8 +73,6 @@ merging, and all plots are regenerated.
 
 ## Options
 
-- `ALLOW_MISSING_INPUTS=1 bash week11/run_all.sh` — tolerate missing raw
-  inputs (demo/partial machines) as long as downstream outputs exist.
 - `PYTHON=/path/to/python bash week11/run_all.sh` — choose the interpreter.
 
 ## Fidelity of the Python ports
@@ -90,6 +88,12 @@ merging, and all plots are regenerated.
   session that had dplyr attached).
 - `main.py` reads listing ids as strings (`dtype={"id": str}`) — previously
   19-digit ids were float-converted and corrupted (e.g. `1.33e+18`), a known
-  issue recorded in the week 9 README. Files already written with corrupted
-  ids are unaffected retroactively; they will be correct the next time
-  stage 5 runs with an API key.
+  issue recorded in the week 9 README.
+- The already-written `christchurch_listings_clean_with_area.csv` was repaired
+  with `week11/fix_with_area_ids.py`: since the old geocoding step wrote its
+  output in the same row order as its input, the correct string ids were
+  re-attached positionally from `christchurch_listings_v2.csv` (whose ids were
+  never corrupted) after a row-for-row verification — no API calls needed.
+  With the ids fixed, step 8's bed comparison matches the detailed scrape by
+  listing id again instead of the 6-dp coordinate workaround (3,469 vs 3,468
+  matched listings — the two methods agree).

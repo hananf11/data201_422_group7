@@ -14,13 +14,13 @@ Approach
     * Long-term beds: sum over bed categories of active_bonds x beds
       (1-4 as-is, "5+" counted as 5).
 
-Inputs : week9/data/christchurch_listings_clean_with_area.csv
-         week9/data/cleaned_rental_bond_data.csv
-         week9/data/detailed/listings_detailed_2026-06-19.csv.gz
-Outputs: week9/output/step8_counts_by_location.csv
-         week9/output/step8_beds_by_location.csv
-         week9/output/step8_counts_barplot.png
-         week9/output/step8_beds_barplot.png
+Inputs : week11/data/christchurch_listings_clean_with_area.csv
+         week11/data/cleaned_rental_bond_data.csv
+         week11/data/detailed/listings_detailed_2026-06-19.csv.gz
+Outputs: week11/output/step8_counts_by_location.csv
+         week11/output/step8_beds_by_location.csv
+         week11/output/step8_counts_barplot.png
+         week11/output/step8_beds_barplot.png
 """
 
 import gzip
@@ -51,8 +51,6 @@ listings = pd.read_csv(
     os.path.join(DATA, "christchurch_listings_clean_with_area.csv"),
     dtype={"id": str, "host_id": str, "location_id": str},
 )
-# the with_area file stores ids as floats ("40183765.0"); normalise to plain ids
-listings["id"] = listings["id"].str.replace(r"\.0$", "", regex=True)
 rental = pd.read_csv(
     os.path.join(DATA, "cleaned_rental_bond_data.csv"),
     dtype={"location_id": str},
@@ -140,26 +138,16 @@ bond_beds = (
 with gzip.open(
     os.path.join(DATA, "detailed/listings_detailed_2026-06-19.csv.gz"), "rt", encoding="utf-8"
 ) as f:
-    detailed = pd.read_csv(
-        f, low_memory=False, usecols=["id", "latitude", "longitude", "bedrooms"]
-    )
+    detailed = pd.read_csv(f, low_memory=False, usecols=["id", "bedrooms"],
+                           dtype={"id": str})
 
-# The with_area file corrupted long listing ids to scientific-notation floats
-# (precision loss), so match on 6-dp coordinates instead of id.
-coords = (
-    listings[listings["month_year"] == "2026-06"][["latitude", "longitude", "location_id"]]
+june_ids = (
+    listings[listings["month_year"] == "2026-06"][["id", "location_id"]]
     .dropna(subset=["location_id"])
-    .drop_duplicates(["latitude", "longitude"])
+    .drop_duplicates("id")
 )
-june = detailed.merge(
-    coords.assign(
-        lat_key=coords["latitude"].round(6), lon_key=coords["longitude"].round(6)
-    ),
-    left_on=[detailed["latitude"].round(6), detailed["longitude"].round(6)],
-    right_on=["lat_key", "lon_key"],
-    how="inner",
-)
-print(f"Detailed listings matched to areas by coordinates: {len(june):,}")
+june = detailed.merge(june_ids, on="id", how="inner")
+print(f"Detailed listings matched to areas by listing id: {len(june):,}")
 airbnb_beds = (
     june.dropna(subset=["bedrooms"])
     .groupby("location_id", as_index=False)["bedrooms"]
