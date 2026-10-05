@@ -17,6 +17,8 @@ RELEASE_DATES = [
     date(2026, 4, 16),
     date(2026, 5, 23),
     date(2026, 6, 19),
+    date(2026, 7, 12),
+    date(2026, 8, 13),
 ]
 
 URL_TEMPLATE = "https://data.insideairbnb.com/new-zealand/{date}/visualisations/listings.csv"

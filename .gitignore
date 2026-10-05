@@ -4,6 +4,8 @@ week5/origin_data/
 week5/Dictionary.xlsx
 data/*
 delivery4/data/*
+deliverable7/data/*
+deliverable7/output/*
 **/.env
 **/*.csv
 __pycache__/
