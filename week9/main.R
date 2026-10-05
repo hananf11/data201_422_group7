@@ -1,6 +1,5 @@
-library(dplyr)
-rental_csv <- read.csv("./data/cleaned_rental_bond_data.csv")
-listings_csv <- read.csv("./data/christchurch_listings_clean_with_area.csv")
+rental_csv <- read.csv("./cleaned_rental_bond_data.csv")
+listings_csv <- read.csv("./christchurch_listings_clean_with_area.csv")
 
 # merge on column rental_csv "time_frame", "location_id" listings_csv "month_year", "location_id"
 date_to_quarter <- function(dates) {
@@ -32,6 +31,6 @@ median_christchurch_price <- median(merged_christchurch_data$price, na.rm = TRUE
 print(paste0("The median price of rentals in Christchurch Central is: $", median_christchurch_price))
 
 # save merged data to output folder
-dir.create("./data/output", showWarnings = FALSE, recursive = TRUE)
-write.csv(merged_csv, "./data/output/merged_rental_and_listings_data.csv", row.names = FALSE)
+dir.create("./output", showWarnings = FALSE, recursive = TRUE)
+write.csv(merged_csv, "./output/merged_rental_and_listings_data.csv", row.names = FALSE)
 
