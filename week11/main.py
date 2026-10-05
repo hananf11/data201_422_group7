@@ -30,12 +30,20 @@ def search_api_for_location(longitude, latitude):
             "requests is not installed — run: pip install requests python-dotenv"
         )
 
+    import time
+
     api_key = os.getenv("KOORDINATES_API_KEY")
     url = "https://koordinates.com/services/query/v1/vector.json?"
     url += f"key={api_key}&"
     url += f"x={longitude}&y={latitude}&"
     url += f"layer={STATS_NZ_AREA_LAYER_ID}&with_field_names=true"
-    response = requests.get(url)
+
+    response = None
+    for attempt in range(3):  # transient 429s / network hiccups: retry twice
+        response = requests.get(url)
+        if response.status_code == 200:
+            break
+        time.sleep(2 * (attempt + 1))
     if response.status_code != 200:
         raise RuntimeError(
             f"Koordinates API returned {response.status_code} for "
